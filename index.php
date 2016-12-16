@@ -16,8 +16,9 @@ require 'reports/delivery.php';
 require 'reports/retur.php';
 require 'reports/commision.php';
 require 'reports/payOff.php';
-require 'reports/SjBelumKembali.php';
+require 'reports/sjBelumKembali.php';
 require 'reports/partner.php';
+require 'reports/invoiceAll.php';
 
 $app->get('/', function($request, $response){
 	return $response->write('<h1>Welcome to Lois Report Engine</h1>');	
@@ -192,7 +193,12 @@ $app->post('/deliveryList', function($request, $response) use($token){
 
 $app->post('/deliveryOrder', function($request, $response) use($token){
 	$data = json_decode($request->getBody(), true);
-
+	
+	if(!isset($data['token']) || $data['token'] != $token){
+		$response->withStatus(401);
+		return $response;
+	}
+	
 	$pdf = new DeliveryOrder($data['orientation'], $data['unit'], $data['paper']);
 	$pdf->SetMargins(0, 0, 0);
 	$pdf->SetFont('Helvetica','',9);
@@ -261,6 +267,29 @@ $app->post('/partner', function($request, $response) use($token){
 	}
 	
 	$pdf = new Partner($data['orientation'], $data['unit'], $data['paper']);
+	$pdf->AliasNbPages('{nb}');
+	$pdf->setUserName($data['user']);
+	$pdf->SetFont('Helvetica', '', 9);
+	$pdf->AddPage();
+	$pdf->buildReport($data);
+	
+	try{
+		$pdf->Output($data['title'].'.pdf', 'I');
+	}
+	catch(Exception $e){
+		var_dump($e->getMessage());
+	}
+});
+
+$app->post('/invoiceAll', function($request, $response) use($token){
+	$data = json_decode($request->getBody(), true);
+	
+	if(!isset($data['token']) || $data['token'] != $token){
+		$response->withStatus(401);
+		return $response;
+	}
+	
+	$pdf = new InvoiceAll($data['orientation'], $data['unit'], $data['paper']);
 	$pdf->AliasNbPages('{nb}');
 	$pdf->setUserName($data['user']);
 	$pdf->SetFont('Helvetica', '', 9);
