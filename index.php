@@ -105,7 +105,7 @@ $app->post('/delivery', function($request, $response) use($token){
 	}
 	
 	$data = json_decode($request->getBody(), true);
-	$pdf = new Delivery('P', 'mm', 'A4');
+	$pdf = new Delivery($data['orientation'], $data['unit'], $data['paper']);
 	$pdf->AliasNbPages('{nb}');
 	$pdf->setUserName($data['user']);
 	$pdf->SetFont('Helvetica', '', 9);
