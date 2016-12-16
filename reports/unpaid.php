@@ -2,7 +2,7 @@
 	require_once 'config.php';
 	require_once 'utils.php';
 	
-	class DeliveryList extends FPDF {
+	class Unpaid extends FPDF {
 		var $userName;
 		
 		function __construct($orientation='P', $unit='mm', $size='A4'){
@@ -41,11 +41,7 @@
 			$this->Ln(6);
 			
 			//Report date
-			if(isset($data['startDate']) && isset($data['endDate'])){
-				$this->Ln(4);
-				$dateStr = 'Periode '. Utils::dateIDFormat($data['startDate'], 3).' - '. Utils::dateIDFormat($data['endDate'], 3);
-				$this->addCell(array_sum($w), 10, $dateStr, 'Helvetica', 'B', 9);
-			}
+			$this->addCell(array_sum($w), 10, 'Periode ' . Utils::dateIDFormat($data['date'], 3), 'Helvetica', 'B', 9);
 			
 			$this->Ln(10);
 			$this->addCells('Helvetica', 'B', 9, $w, $data['headers']);
@@ -68,7 +64,7 @@
 					number_format($row['totalWeight']),
 					'Rp. '.number_format( $row['price'],2,',','.'),
 					$row['paymentMethod'],
-					$row['destinationRegion'],
+					$row['invoice'],
 					date('d/m/Y',strtotime($row['transactionDate']))
 				);
 				

@@ -2,7 +2,7 @@
 	require_once 'config.php';
 	require_once 'utils.php';
 	
-	class DeliveryList extends FPDF {
+	class Paid extends FPDF {
 		var $userName;
 		
 		function __construct($orientation='P', $unit='mm', $size='A4'){
@@ -26,7 +26,7 @@
 		}
 	
 		public function buildReport($data){
-			$w = array(10, 20, 35, 35, 30, 20, 20, 30, 30, 25, 25);
+			$w = array(10, 20, 35, 35, 30, 20, 20, 30, 25, 25);
 			
 			//Header
 			$this->addCell(array_sum($w), 10, 'PT. LIMAS SENTOSA ANTARNUSA', 'Helvetica', 'B', 12);
@@ -39,13 +39,6 @@
 			//Location
 			$this->addCell(array_sum($w), 10, $data['location'], 'Helvetica', 'B', 10);
 			$this->Ln(6);
-			
-			//Report date
-			if(isset($data['startDate']) && isset($data['endDate'])){
-				$this->Ln(4);
-				$dateStr = 'Periode '. Utils::dateIDFormat($data['startDate'], 3).' - '. Utils::dateIDFormat($data['endDate'], 3);
-				$this->addCell(array_sum($w), 10, $dateStr, 'Helvetica', 'B', 9);
-			}
 			
 			$this->Ln(10);
 			$this->addCells('Helvetica', 'B', 9, $w, $data['headers']);
@@ -67,9 +60,8 @@
 					number_format($row['totalColli']),
 					number_format($row['totalWeight']),
 					'Rp. '.number_format( $row['price'],2,',','.'),
-					$row['paymentMethod'],
-					$row['destinationRegion'],
-					date('d/m/Y',strtotime($row['transactionDate']))
+					$row['bank'],
+					$row['invoice']
 				);
 				
 				$addRowValue = array();
@@ -140,7 +132,6 @@
 					$this->Cell($w[7],$tHeight,$dataValue[$i][7],$merge,0,'R');			
 					$this->Cell($w[8],$tHeight,isset($dataValue[$i][8]) ? $dataValue[$i][8] : ' ',$merge);
 					$this->Cell($w[9],$tHeight,$dataValue[$i][9],$merge);
-					$this->Cell($w[10],$tHeight,$dataValue[$i][10],$merge);
 					
 					$this->Ln($tHeight);
 			

@@ -2,7 +2,7 @@
 	require_once 'config.php';
 	require_once 'utils.php';
 	
-	class DeliveryList extends FPDF {
+	class Commision extends FPDF {
 		var $userName;
 		
 		function __construct($orientation='P', $unit='mm', $size='A4'){
@@ -33,7 +33,7 @@
 			$this->Ln(6);
 			
 			//Report Title
-			$this->addCell(array_sum($w), 10, $data['title'], 'Helvetica', 'U', 14);
+			$this->addCell(array_sum($w), 10, 'LAPORAN SJ TERBAYAR', 'Helvetica', 'U', 14);
 			$this->Ln(6);
 			
 			//Location
