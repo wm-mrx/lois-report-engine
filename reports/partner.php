@@ -26,14 +26,14 @@
 		}
 	
 		public function buildReport($data){
-			$w = array(10, 20, 35, 35, 30, 20, 20, 30, 30, 25, 25);
+			$w = array(10, 20, 35, 20, 20, 10, 20, 35, 30, 30, 25, 25);
 			
 			//Header
 			$this->addCell(array_sum($w), 10, 'PT. LIMAS SENTOSA ANTARNUSA', 'Helvetica', 'B', 12);
 			$this->Ln(6);
 			
 			//Report Title
-			$this->addCell(array_sum($w), 10, 'LAPORAN SJ TERBAYAR', 'Helvetica', 'U', 14);
+			$this->addCell(array_sum($w), 10, $data['title'], 'Helvetica', 'U', 14);
 			$this->Ln(6);
 			
 			//Location
@@ -62,13 +62,14 @@
 					$rowNumber++,
 					$row['spbNumber'],
 					$row['sender'],
-					$row['receiver'],
-					$row['content'],
+					$row['partner'],
+					$row['partnerCode'],
 					number_format($row['totalColli']),
 					number_format($row['totalWeight']),
 					'Rp. '.number_format( $row['price'],2,',','.'),
-					$row['paymentMethod'],
-					$row['destinationRegion'],
+					'Rp. '.number_format( $row['paymentFee'],2,',','.'),
+					'Rp. '.number_format( $row['workerFee'],2,',','.'),
+					$row['destination'],
 					date('d/m/Y',strtotime($row['transactionDate']))
 				);
 				
@@ -138,9 +139,10 @@
 					$this->Cell($w[5],$tHeight,$dataValue[$i][5],$merge,0,'R');
 					$this->Cell($w[6],$tHeight,$dataValue[$i][6],$merge,0,'R');
 					$this->Cell($w[7],$tHeight,$dataValue[$i][7],$merge,0,'R');			
-					$this->Cell($w[8],$tHeight,isset($dataValue[$i][8]) ? $dataValue[$i][8] : ' ',$merge);
-					$this->Cell($w[9],$tHeight,$dataValue[$i][9],$merge);
+					$this->Cell($w[8],$tHeight,isset($dataValue[$i][8]) ? $dataValue[$i][8] : ' ',$merge, 0, 'R');
+					$this->Cell($w[9],$tHeight,$dataValue[$i][9],$merge, 0, 'R');
 					$this->Cell($w[10],$tHeight,$dataValue[$i][10],$merge);
+					$this->Cell($w[11],$tHeight,$dataValue[$i][11],$merge);
 					
 					$this->Ln($tHeight);
 			
@@ -156,6 +158,8 @@
 			$this->Cell($w[5],7,number_format($data['sumTotalColli']),'LRB',0,'R');
 			$this->Cell($w[6],7,number_format($data['sumTotalWeight']),'LRB',0,'R');
 			$this->Cell($w[7],7,'Rp. '.number_format($data['sumPrice'],2,',','.'),'LRB',0,'R');
+			$this->Cell($w[8],7,'Rp. '.number_format($data['sumPartnerFee'],2,',','.'),'LRB',0,'R');
+			$this->Cell($w[9],7,'Rp. '.number_format($data['sumWorkerFee'],2,',','.'),'LRB',0,'R');
 		}
 	
 		public function footer(){

@@ -24,30 +24,67 @@
 			for($i=0; $i<count($headers); $i++)
 				$this->Cell($columnSizes[$i], 7, $headers[$i], 1, 0, 'C');
 		}
-	
+		
+		private function addLeftText($to, $region, $name, $position){
+			
+		}
+		
 		public function buildReport($data){
-			$w = array(10, 20, 35, 35, 30, 20, 20, 30, 30, 25, 25);
+			$w = array(10, 15, 35, 20, 40, 20, 20, 30, 30, 25, 25);
 			
-			//Header
-			$this->addCell(array_sum($w), 10, 'PT. LIMAS SENTOSA ANTARNUSA', 'Helvetica', 'B', 12);
+			$header = 'Kepada Yth,';
+			$right =  'Jakarta, ' . Utils::dateIDFormat(date('Y-m-d'), 3);
+			$to = 'PT. LIMAS SENTOSA ANTAR NUSA';
+			$region = 'Jakarta';
+			$recipient = 'Bpk./Ibu.................................../Bag...................................';
+			$respect = 'Dengan hormat,';
+			$intro = 'Berikut kami sampaikan surat jalan yang belum kembali tujuan daerah';
+			$destination = 'Jakarta, Cirebon, sbb:';
+			
+			$this->SetXY(10, 30);
+			$this->SetFont('Helvetica', null, 11);
+			$length = $this->GetStringWidth($header);
+			$this->Cell($length, 2, $header);
 			$this->Ln(6);
 			
-			//Report Title
-			$this->addCell(array_sum($w), 10, 'LAPORAN SJ TERBAYAR', 'Helvetica', 'U', 14);
+			$this->SetXY(150, 30);
+			$this->SetFont('Helvetica', null, 11);
+			$length = $this->GetStringWidth($right);
+			$this->Cell($length, 2, $right);
 			$this->Ln(6);
 			
-			//Location
-			$this->addCell(array_sum($w), 10, $data['location'], 'Helvetica', 'B', 10);
+			$this->SetFont('Helvetica','B',11);
+			$length = $this->GetStringWidth($to);
+			$this->Cell($length, 2, $to);
 			$this->Ln(6);
 			
-			//Report date
-			if(isset($data['startDate']) && isset($data['endDate'])){
-				$this->Ln(4);
-				$dateStr = 'Periode '. Utils::dateIDFormat($data['startDate'], 3).' - '. Utils::dateIDFormat($data['endDate'], 3);
-				$this->addCell(array_sum($w), 10, $dateStr, 'Helvetica', 'B', 9);
-			}
+			$this->SetFont('Helvetica','B',11);
+			$length = $this->GetStringWidth('regional ' . $region);
+			$this->Cell($length, 2, 'regional ' . $region);
+			$this->Ln(6);
 			
-			$this->Ln(10);
+			$this->SetFont('Helvetica','',11);
+			$length = $this->GetStringWidth($recipient);
+			$this->Cell($length, 2, $recipient);
+			$this->Ln(15);
+			
+			$this->SetFont('Helvetica','',11);
+			$length = $this->GetStringWidth($respect);
+			$this->Cell($length, 2, $respect);
+			$this->Ln(6);
+			
+			$this->SetFont('Helvetica','',11);
+			$length = $this->GetStringWidth($intro);
+			$this->Cell($length, 2, $intro);
+			$this->Ln(6);
+			
+			$this->SetFont('Helvetica','',11);
+			$length = $this->GetStringWidth($destination);
+			$this->Cell($length, 2, $destination);
+			$this->Ln(6);
+			
+			$w = array(10, 30, 30, 30, 30, 30, 30);
+			$this->Ln(5);
 			$this->addCells('Helvetica', 'B', 9, $w, $data['headers']);
 			$this->Ln();
 			
@@ -60,16 +97,12 @@
 				
 				$dataValue[]= array(
 					$rowNumber++,
+					date('d/m/Y',strtotime($row['transactionDate'])),
 					$row['spbNumber'],
 					$row['sender'],
 					$row['receiver'],
-					$row['content'],
-					number_format($row['totalColli']),
-					number_format($row['totalWeight']),
-					'Rp. '.number_format( $row['price'],2,',','.'),
-					$row['paymentMethod'],
-					$row['destinationRegion'],
-					date('d/m/Y',strtotime($row['transactionDate']))
+					$row['destination'],
+					''
 				);
 				
 				$addRowValue = array();
@@ -135,13 +168,9 @@
 					$this->Cell($w[2],$tHeight,isset($dataValue[$i][2]) ? $dataValue[$i][2] : ' ',$merge);
 					$this->Cell($w[3],$tHeight,isset($dataValue[$i][3]) ? $dataValue[$i][3] : ' ',$merge);
 					$this->Cell($w[4],$tHeight,isset($dataValue[$i][4]) ? $dataValue[$i][4] : ' ',$merge);
-					$this->Cell($w[5],$tHeight,$dataValue[$i][5],$merge,0,'R');
-					$this->Cell($w[6],$tHeight,$dataValue[$i][6],$merge,0,'R');
-					$this->Cell($w[7],$tHeight,$dataValue[$i][7],$merge,0,'R');			
-					$this->Cell($w[8],$tHeight,isset($dataValue[$i][8]) ? $dataValue[$i][8] : ' ',$merge);
-					$this->Cell($w[9],$tHeight,$dataValue[$i][9],$merge);
-					$this->Cell($w[10],$tHeight,$dataValue[$i][10],$merge);
-					
+					$this->Cell($w[5],$tHeight,isset($dataValue[$i][5]) ? $dataValue[$i][5] : ' ',$merge,0,'L');
+					$this->Cell($w[6],$tHeight,isset($dataValue[$i][6]) ? $dataValue[$i][6] : ' ',$merge,0,'L');
+	
 					$this->Ln($tHeight);
 			
 					if($merge = 'LR')
@@ -150,12 +179,42 @@
 						$previousMerge = false;
 				}
 			}
-		
-			$this->SetFont('Helvetica','B',9);
-			$this->Cell($w[0]+$w[1]+$w[2]+$w[3]+$w[4],7,'Total','LRB',0,'C');
-			$this->Cell($w[5],7,number_format($data['sumTotalColli']),'LRB',0,'R');
-			$this->Cell($w[6],7,number_format($data['sumTotalWeight']),'LRB',0,'R');
-			$this->Cell($w[7],7,'Rp. '.number_format($data['sumPrice'],2,',','.'),'LRB',0,'R');
+			
+			$this->Ln(6);
+			$this->SetFont('Helvetica','',8);
+			$length = $this->GetStringWidth('catatan:');
+			$this->Cell($length, 2, 'catatan:');
+			
+			$footer1 = 'Mohon untuk segera ditindaklanjuti demo proses selanjutnya.';
+			$footer2 = 'Demikian pemberitahuannya, atas perhatiannya kami ucapkan terima kasih.';
+			$respectFooter = 'Hormat Kami,';
+			$company = 'PT LIMAS SENTOSA ANTAR NUSA';
+			$admin = 'Administrator';
+			
+			$this->Ln(20);
+			$this->SetFont('Helvetica','',11);
+			$length = $this->GetStringWidth($footer2);
+			$this->Cell($length, 2, $footer1);
+			
+			$this->Ln(6);
+			$this->SetFont('Helvetica','',11);
+			$length = $this->GetStringWidth($footer2);
+			$this->Cell($length, 2, $footer2);
+			
+			$this->Ln(15);
+			$this->SetFont('Helvetica','',11);
+			$length = $this->GetStringWidth($respectFooter);
+			$this->Cell($length, 2, $respectFooter);
+			
+			$this->Ln(6);
+			$this->SetFont('Helvetica','',11);
+			$length = $this->GetStringWidth($company);
+			$this->Cell($length, 2, $company);
+			
+			$this->Ln(18);
+			$this->SetFont('Helvetica','',11);
+			$length = $this->GetStringWidth($admin);
+			$this->Cell($length, 2, $admin);
 		}
 	
 		public function footer(){
