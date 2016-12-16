@@ -13,6 +13,32 @@
 			$this->userName = $userName;
 		}
 		
+		function textLine($paragraph, $textWidth, $colWidth){
+			$result = array($paragraph);
+			$line = floor(($textWidth*strlen($paragraph))/$colWidth);	
+			if ($line>0){
+				$texts = explode(" ",$paragraph);
+				$textWidth = floor($colWidth/ $textWidth);
+				$i_data = 0;
+				for($x=0;$x<$line+1;$x++) {
+					$addText = '';
+					$text = '';				
+					for($i=$i_data;$i<count($texts);$i++) {					
+						$text = $text.$texts[$i];
+						$text_len = strlen($text);
+						$i_data = $i;
+						if ($text_len > $textWidth)
+							break;					
+						$addText = $text;
+						$text = $text.' ';						
+					} 
+					$result[$x]=$addText;	
+				}
+			}
+			return $result;
+		}
+
+		
 		private function addCell($width, $height, $text, $fontFamily, $fontWeight, $fontSize){
 			$this->SetFont($fontFamily, $fontWeight, $fontSize);
 			$this->Cell($width, $height, $text, 0, 0, 'C');
@@ -26,136 +52,153 @@
 		}
 	
 		public function buildReport($data){
-			$w = array(10, 20, 35, 35, 30, 20, 20, 30, 30, 25, 25);
+			$border = 0; // 1 to format setup; 0 running
+			$printDate = Utils::dateIDFormat(date("Y-m-d"),1);
+			$printTime = date("H:i:s");
 			
-			//Header
-			$this->addCell(array_sum($w), 10, 'PT. LIMAS SENTOSA ANTARNUSA', 'Helvetica', 'B', 12);
-			$this->Ln(6);
-			
-			//Report Title
-			$this->addCell(array_sum($w), 10, 'LAPORAN SJ TERBAYAR', 'Helvetica', 'U', 14);
-			$this->Ln(6);
-			
-			//Location
-			$this->addCell(array_sum($w), 10, $data['location'], 'Helvetica', 'B', 10);
-			$this->Ln(6);
-			
-			//Report date
-			if(isset($data['startDate']) && isset($data['endDate'])){
-				$this->Ln(4);
-				$dateStr = 'Periode '. Utils::dateIDFormat($data['startDate'], 3).' - '. Utils::dateIDFormat($data['endDate'], 3);
-				$this->addCell(array_sum($w), 10, $dateStr, 'Helvetica', 'B', 9);
-			}
-			
-			$this->Ln(10);
-			$this->addCells('Helvetica', 'B', 9, $w, $data['headers']);
-			$this->Ln();
-			
-			$this->SetFont('Helvetica','',9);
-			
-			$rowNumber = 1;
-			
-			foreach($data['rows'] as $row){
-				$dataValue = array();
+			/* write pdf */
+			foreach($data['rows'] as $report){
+				/* print page */
+				$this->AddPage();
 				
-				$dataValue[]= array(
-					$rowNumber++,
-					$row['spbNumber'],
-					$row['sender'],
-					$row['receiver'],
-					$row['content'],
-					number_format($row['totalColli']),
-					number_format($row['totalWeight']),
-					'Rp. '.number_format( $row['price'],2,',','.'),
-					$row['paymentMethod'],
-					$row['destinationRegion'],
-					date('d/m/Y',strtotime($row['transactionDate']))
-				);
-				
-				$addRowValue = array();
-				$w_count = 0;
-				
-				foreach($dataValue[0] as $col) {	
-					$line = floor((2.187*strlen($col))/$w[$w_count]);			
-					array_push($addRowValue,$line);	
-					
-					if ($line>0){
-						$addText = explode(" ",$col);
-						$textWidth = floor($w[$w_count]/ 2.187);
-						$i_data = 0;
+				/*  address line */
+				$fontWidth = 3.10;
+				$addressLine = $this->textLine($report['receiverAddress'], $fontWidth, 73); //2.145, 51.5
+				$sender = $this->textLine($report['sender'].' '.$report['senderContact'], $fontWidth, 45); //2.145, 45
+				$receiver = $this->textLine($report['receiver'], $fontWidth, 45); //2.145, 45
+				$poLine = $this->textLine($report['poNumber'], $fontWidth, 81.5); //2.145, 81.5
+				$marginX=-0; //-4.5
+				$marginY=-7; //-9/-22
+				$fontBase=2;
 						
-						for($x=0;$x<$line+1;$x++) {
-							$addTextWidth = '';
-							$text='';
-							
-							for($i=$i_data;$i<count($addText);$i++) {	
-								$text = $text.$addText[$i];
-								$text_len = strlen($text);
-								$i_data = $i;
-								
-								if ($text_len > $textWidth)
-									break;			
-								
-								$addTextWidth = $text;
-								$text = $text.' ';	
-							}
-							
-							$dataValue[$x][$w_count]=$addTextWidth;	
-						}
-					}
-					
-					$w_count += 1;
+				$this->Cell(176+$marginY,35+$marginX,'',$border);
+				$this->Ln();
+				$this->Cell(176+$marginY,4.5,'',$border);
+				$this->SetFont('Courier','B',12+$fontBase);
+				$this->Cell(40,4.5,$report['spbNumber'],$border);
+				$this->Ln();
+				$this->Cell(176+$marginY,4.5,'',$border);
+				$this->SetFont('Courier','B',9+$fontBase);
+				$this->Cell(40,4.5,$printDate,$border);
+				$this->Ln();
+				$this->Cell(176+$marginY,4.5,'',$border);
+				$this->Cell(40,4.5,$printTime,$border);
+				$this->Ln();
+				$this->Cell(56.7+$marginY,23,'',$border);
+				$this->Ln();
+				$this->Cell(56.7+$marginY,6.3,'',$border);
+				$this->Cell(23.5,6.3,'',$border);
+				$this->SetFont('Courier','B',10+$fontBase);
+				$this->Cell(45,6.3,isset($sender[0]) ? $sender[0] : ' ',$border,0,'C');
+				$this->Cell(44,6.3,'',$border);
+				$this->Cell(73,6.3,'',$border);
+				$this->Ln();
+				$this->Cell(56.7+$marginY,7.3,'',$border);
+				$this->Cell(23.5,7.3,'',$border);
+				$this->Cell(45,7.3,isset($sender[1]) ? $sender[1] : ' ',$border,0,'C');
+				$this->Cell(44,7.3,$report['senderDriver'],$border,0,'C');
+				$this->Cell(73,7.3,isset($addressLine[0]) ? $addressLine[0] : ' ',$border,0,'L');
+				$this->Ln();
+				$this->Cell(56.7+$marginY,5.5,'',$border);
+				$this->Cell(23.5,5.5,'',$border);
+				$this->Cell(45,5.5,isset($receiver[0]) ? $receiver[0] : ' ',$border,0,'C');
+				$this->Cell(44,5.5,'',$border);
+				$this->Cell(73,5.5,isset($addressLine[1]) ? $addressLine[1] : ' ',$border,0,'L');
+				$this->Ln();
+				$this->Cell(56.7+$marginY,8,'',$border);
+				$this->Cell(23.5,8,'',$border);
+				$this->Cell(45,8,isset($receiver[1]) ? $receiver[1] : ' ',$border,0,'C');
+				$this->Cell(44,8,strtoupper($report['destination']),$border,0,'C');
+				$this->Cell(73,8,isset($addressLine[2]) ? $addressLine[2] : ' ',$border,0,'L');
+				$this->Ln();
+				$this->Cell(56.7+$marginY,5.5,'',$border);
+				$this->Cell(23.5,5.5,'',$border);
+				$this->Cell(45,5.5,$report['receiverPhone'],$border,0,'C');
+				$this->Ln();
+				$this->Cell(56.7+$marginY,5.7,'',$border);
+				$this->Cell(23.5,5.7,'',$border);
+				$this->SetFont('Courier','B',12+$fontBase);
+				$this->Cell(45,5.7,number_format($report['sumTotalColli']),$border,0,'C');
+				$this->SetFont('Courier','B',10+$fontBase);
+				/* items 0*/
+				if (isset($report['items'][0])){
+					$this->Cell(35.5,5.7,strtolower($report['items'][0]['content']),$border,0,'C');
+					$this->Cell(20.5,5.7,$report['items'][0]['packing'],$border,0,'C');
+					$this->Cell(21,5.7,number_format($report['items'][0]['colli']),$border,0,'C');
+					$this->Cell(40,5.7,$report['items'][0]['volume']=='0x0x0'? $report['items'][0]['weight'].'kg':$report['items'][0]['weight'].'kg ('.$report['items'][0]['volume'].')',$border,0,'C');
 				}
-				
-				$rowCount = max($addRowValue)+1;
-				for($i=1;$i<$rowCount;$i++) {
-					for($x=0;$x<$w_count;$x++) {
-						if ($addRowValue[$x] == 0)
-							$dataValue[$i][$x]='';
-					}
+				$this->Ln();
+				$this->Cell(56.7+$marginY,5.7,'',$border);
+				$this->Cell(23.5,5.7,'',$border);
+				$this->SetFont('Courier','B',12+$fontBase);
+				$this->Cell(45,5.7,number_format($report['sumTotalWeight']),$border,0,'C');
+				$this->SetFont('Courier','B',10+$fontBase);
+				/* items 1*/
+				if (isset($report['items'][1])){
+					$this->Cell(35.5,5.7,strtolower($report['items'][1]['content']),$border,0,'C');
+					$this->Cell(20.5,5.7,$report['items'][1]['packing'],$border,0,'C');
+					$this->Cell(21,5.7,number_format($report['items'][1]['colli']),$border,0,'C');
+					$this->Cell(40,5.7,$report['items'][1]['volume']=='0x0x0'? $report['items'][1]['weight'].'kg':$report['items'][1]['weight'].'kg ('.$report['items'][1]['volume'].')',$border,0,'C');
 				}
-				
-				$previousMerge = false;
-				
-				for($i=0;$i<$rowCount;$i++) {
-					if ($i < ($rowCount-1)){
-						$merge = 'LR';
-						$tHeight = 6;
-					}
-					else{
-						$merge = 'LRB';
-						if ($previousMerge)
-							$tHeight = 4;
-						else
-							$tHeight = 7;
-					}
-					
-					$this->Cell($w[0],$tHeight, $dataValue[$i][0] ,$merge);
-					$this->Cell($w[1],$tHeight,$dataValue[$i][1],$merge);
-					$this->Cell($w[2],$tHeight,isset($dataValue[$i][2]) ? $dataValue[$i][2] : ' ',$merge);
-					$this->Cell($w[3],$tHeight,isset($dataValue[$i][3]) ? $dataValue[$i][3] : ' ',$merge);
-					$this->Cell($w[4],$tHeight,isset($dataValue[$i][4]) ? $dataValue[$i][4] : ' ',$merge);
-					$this->Cell($w[5],$tHeight,$dataValue[$i][5],$merge,0,'R');
-					$this->Cell($w[6],$tHeight,$dataValue[$i][6],$merge,0,'R');
-					$this->Cell($w[7],$tHeight,$dataValue[$i][7],$merge,0,'R');			
-					$this->Cell($w[8],$tHeight,isset($dataValue[$i][8]) ? $dataValue[$i][8] : ' ',$merge);
-					$this->Cell($w[9],$tHeight,$dataValue[$i][9],$merge);
-					$this->Cell($w[10],$tHeight,$dataValue[$i][10],$merge);
-					
-					$this->Ln($tHeight);
-			
-					if($merge = 'LR')
-						$previousMerge = true;
-					else
-						$previousMerge = false;
+				$this->Ln();
+				$this->Cell(56.7+$marginY,5.7,'',$border);
+				$this->Cell(23.5,5.7,'',$border);
+				$this->SetFont('Courier','B',12+$fontBase);
+				$this->Cell(45,5.7,$report['additionalCost'] == 0 ? '' : 'Rp. '.number_format($report['additionalCost'],2,',','.'),$border,0,'C');
+				$this->SetFont('Courier','B',10+$fontBase);
+				/* items 2*/
+				if (isset($report['items'][2])){
+					$this->Cell(35.5,5.7,strtolower($report['items'][2]['content']),$border,0,'C');
+					$this->Cell(20.5,5.7,$report['items'][2]['packing'],$border,0,'C');
+					$this->Cell(21,5.7,number_format($report['items'][2]['colli']),$border,0,'C');
+					$this->Cell(40,5.7,$report['items'][2]['volume']=='0x0x0'? $report['items'][2]['weight'].'kg':$report['items'][2]['weight'].'kg ('.$report['items'][2]['volume'].')',$border,0,'C');
 				}
+				$this->Ln();
+				$this->Cell(56.7+$marginY,5.7,'',$border);
+				$this->Cell(23.5,5.7,'',$border);
+				$this->SetFont('Courier','B',12+$fontBase);
+				$this->Cell(45,5.7,$report['sumPrice'] ==0 ? '' :'Rp. '.number_format($report['sumPrice'],2,',','.'),$border,0,'C');
+				$this->SetFont('Courier','B',10+$fontBase);
+				/* items 3*/
+				if (isset($report['items'][3])){
+					$this->Cell(35.5,5.7,strtolower($report['items'][3]['content']),$border,0,'C');
+					$this->Cell(20.5,5.7,$report['items'][3]['packing'],$border,0,'C');
+					$this->Cell(21,5.7,number_format($report['items'][3]['colli']),$border,0,'C');
+					$this->Cell(40,5.7,$report['items'][3]['volume']=='0x0x0'? $report['items'][3]['weight'].'kg':$report['items'][3]['weight'].'kg ('.$report['items'][3]['volume'].')',$border,0,'C');
+				}
+				$this->Ln();
+				$this->Cell(56.7+$marginY,5.7,'',$border);
+				$this->Cell(23.5,5.7,'',$border);
+				$this->Cell(45,5.7,$report['paymentMethod']=='CASH ON DELIVERY (COD)'? '(COD)':$report['paymentMethod'] ,$border,0,'C');
+				/* items 4*/
+				if (isset($report['items'][4])){
+					$this->Cell(35.5,5.7,strtolower($report['items'][4]['content']),$border,0,'C');
+					$this->Cell(20.5,5.7,$report['items'][4]['packing'],$border,0,'C');
+					$this->Cell(21,5.7,number_format($report['items'][4]['colli']),$border,0,'C');
+					$this->Cell(40,5.7,$report['items'][4]['volume']=='0x0x0'? $report['items'][4]['weight'].'kg':$report['items'][4]['weight'].'kg ('.$report['items'][4]['volume'].')',$border,0,'C');
+				}
+				$this->Ln();
+				$this->Cell(56.7+$marginY,7,'',$border);
+				$this->Cell(23.5,7,'',$border);
+				$this->Cell(45,7,$report['pickupDriver'],$border,0,'C');
+				$this->Cell(35.5,7,'',$border);
+				$this->Cell(81.5,7,$report['note'],$border,0,'C');
+				$this->Ln();
+				$this->Cell(160.7+$marginY,5.2,'',$border);
+				$this->Cell(81.5,5.2,isset($poLine[0]) ? strtolower($poLine[0]) : ' ',$border,0,'C');
+				$this->Ln();
+				$this->Cell(160.7+$marginY,5.2,'',$border);
+				$this->Cell(81.5,5.2,isset($poLine[1]) ? strtolower($poLine[1]) : ' ',$border,0,'C');
+				$this->Ln();
+				$this->Cell(160.7+$marginY,5.2,'',$border);
+				$this->Cell(81.5,5.2,isset($poLine[2]) ? strtolower($poLine[2]) : ' ',$border,0,'C');
+				$this->Ln();
+				$this->Cell(160.7+$marginY,13,'',$border);
+				$this->Cell(30,13,'',$border);
+				$this->Ln();
+				$this->Cell(160.7+$marginY,5,'',$border);
+				$this->Cell(30,5,$data['user'],$border,0,'C');
 			}
-		
-			$this->SetFont('Helvetica','B',9);
-			$this->Cell($w[0]+$w[1]+$w[2]+$w[3]+$w[4],7,'Total','LRB',0,'C');
-			$this->Cell($w[5],7,number_format($data['sumTotalColli']),'LRB',0,'R');
-			$this->Cell($w[6],7,number_format($data['sumTotalWeight']),'LRB',0,'R');
-			$this->Cell($w[7],7,'Rp. '.number_format($data['sumPrice'],2,',','.'),'LRB',0,'R');
 		}
 	
 		public function footer(){

@@ -8,6 +8,7 @@ use \Psr\Http\Message\ResponseInterface as Response;
 $app = new Slim\App();
 
 require 'reports/deliveryList.php';
+require 'reports/deliveryOrder.php';
 require 'reports/unpaid.php';
 require 'reports/paid.php';
 require 'reports/recapitulation.php';
@@ -103,7 +104,7 @@ $app->post('/delivery', function($request, $response) use($token){
 	}
 	
 	$data = json_decode($request->getBody(), true);
-	$pdf = new Delivery($data['orientation'], $data['unit'], $data['paper']);
+	$pdf = new Delivery('P', 'mm', 'A4');
 	$pdf->AliasNbPages('{nb}');
 	$pdf->setUserName($data['user']);
 	$pdf->SetFont('Helvetica', '', 9);
@@ -181,6 +182,21 @@ $app->post('/deliveryList', function($request, $response) use($token){
 	$pdf->AddPage();
 	$pdf->buildReport($data);
 	
+	try{
+		$pdf->Output($data['title'].'.pdf', 'I');
+	}
+	catch(Exception $e){
+		var_dump($e->getMessage());
+	}
+});
+
+$app->post('/deliveryOrder', function($request, $response) use($token){
+	$data = json_decode($request->getBody(), true);
+
+	$pdf = new DeliveryOrder($data['orientation'], $data['unit'], $data['paper']);
+	$pdf->SetMargins(0, 0, 0);
+	$pdf->SetFont('Helvetica','',9);
+	$pdf->buildReport($data);
 	try{
 		$pdf->Output($data['title'].'.pdf', 'I');
 	}
