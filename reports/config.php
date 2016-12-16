@@ -1,0 +1,6 @@
+<?php
+	const POTRAIT_X_FOOTER		=	40;
+	const POTRAIT_Y_FOOTER		=	820;
+	const LANDSCAPE_X_FOOTER	=	24;
+	const LANDSCAPE_Y_FOOTER	=	570;
+?>
