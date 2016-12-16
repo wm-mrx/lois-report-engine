@@ -26,26 +26,20 @@
 		}
 	
 		public function buildReport($data){
-			$w = array(10, 20, 35, 35, 30, 20, 20, 30, 30, 25, 25);
+			$w = array(10, 20, 20, 30, 30, 15, 20, 30, 30, 25, 25, 15, 15);
 			
 			//Header
 			$this->addCell(array_sum($w), 10, 'PT. LIMAS SENTOSA ANTARNUSA', 'Helvetica', 'B', 12);
 			$this->Ln(6);
 			
 			//Report Title
-			$this->addCell(array_sum($w), 10, 'LAPORAN SJ TERBAYAR', 'Helvetica', 'U', 14);
+			$this->addCell(array_sum($w), 10, $data['title'], 'Helvetica', 'U', 14);
 			$this->Ln(6);
 			
 			//Location
-			$this->addCell(array_sum($w), 10, $data['location'], 'Helvetica', 'B', 10);
+			$text = 'Dari ' . $data['location'] . ' ke area sekitar '. $data['destination'][0];
+			$this->addCell(array_sum($w), 10, $text, 'Helvetica', 'B', 10);
 			$this->Ln(6);
-			
-			//Report date
-			if(isset($data['startDate']) && isset($data['endDate'])){
-				$this->Ln(4);
-				$dateStr = 'Periode '. Utils::dateIDFormat($data['startDate'], 3).' - '. Utils::dateIDFormat($data['endDate'], 3);
-				$this->addCell(array_sum($w), 10, $dateStr, 'Helvetica', 'B', 9);
-			}
 			
 			$this->Ln(10);
 			$this->addCells('Helvetica', 'B', 9, $w, $data['headers']);
@@ -62,14 +56,16 @@
 					$rowNumber++,
 					$row['spbNumber'],
 					$row['sender'],
-					$row['receiver'],
-					$row['content'],
-					number_format($row['totalColli']),
-					number_format($row['totalWeight']),
 					'Rp. '.number_format( $row['price'],2,',','.'),
-					$row['paymentMethod'],
-					$row['destinationRegion'],
-					date('d/m/Y',strtotime($row['transactionDate']))
+					$row['partnerNumber'],
+					$row['limasColor'],
+					$row['relationColor'],
+					$row['driver'],
+					$row['date'],
+					$row['receivedBy'],
+					$row['signature'],
+					$row['stamp'],
+					$row['porterReceipt']
 				);
 				
 				$addRowValue = array();
@@ -135,12 +131,14 @@
 					$this->Cell($w[2],$tHeight,isset($dataValue[$i][2]) ? $dataValue[$i][2] : ' ',$merge);
 					$this->Cell($w[3],$tHeight,isset($dataValue[$i][3]) ? $dataValue[$i][3] : ' ',$merge);
 					$this->Cell($w[4],$tHeight,isset($dataValue[$i][4]) ? $dataValue[$i][4] : ' ',$merge);
-					$this->Cell($w[5],$tHeight,$dataValue[$i][5],$merge,0,'R');
-					$this->Cell($w[6],$tHeight,$dataValue[$i][6],$merge,0,'R');
-					$this->Cell($w[7],$tHeight,$dataValue[$i][7],$merge,0,'R');			
+					$this->Cell($w[5],$tHeight,$dataValue[$i][5],$merge,0,'L');
+					$this->Cell($w[6],$tHeight,$dataValue[$i][6],$merge,0,'L');
+					$this->Cell($w[7],$tHeight,$dataValue[$i][7],$merge,0,'L');			
 					$this->Cell($w[8],$tHeight,isset($dataValue[$i][8]) ? $dataValue[$i][8] : ' ',$merge);
 					$this->Cell($w[9],$tHeight,$dataValue[$i][9],$merge);
 					$this->Cell($w[10],$tHeight,$dataValue[$i][10],$merge);
+					$this->Cell($w[11],$tHeight,$dataValue[$i][11],$merge);
+					$this->Cell($w[12],$tHeight,$dataValue[$i][12],$merge);
 					
 					$this->Ln($tHeight);
 			
@@ -150,12 +148,6 @@
 						$previousMerge = false;
 				}
 			}
-		
-			$this->SetFont('Helvetica','B',9);
-			$this->Cell($w[0]+$w[1]+$w[2]+$w[3]+$w[4],7,'Total','LRB',0,'C');
-			$this->Cell($w[5],7,number_format($data['sumTotalColli']),'LRB',0,'R');
-			$this->Cell($w[6],7,number_format($data['sumTotalWeight']),'LRB',0,'R');
-			$this->Cell($w[7],7,'Rp. '.number_format($data['sumPrice'],2,',','.'),'LRB',0,'R');
 		}
 	
 		public function footer(){

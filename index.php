@@ -11,6 +11,8 @@ require 'reports/deliveryList.php';
 require 'reports/unpaid.php';
 require 'reports/paid.php';
 require 'reports/recapitulation.php';
+require 'reports/delivery.php';
+require 'reports/retur.php';
 
 $app->get('/', function($request, $response){
 	return $response->write('<h1>Welcome to Lois Report Engine</h1>');	
@@ -91,23 +93,49 @@ $app->post('/recapitulation', function($request, $response) use($token){
 $app->post('/delivery', function($request, $response) use($token){
 	$data = json_decode($request->getBody(), true);
 	
-	if(!$data['token']){
-		$response->setStatus(401);
+	if(!isset($data['token']) || $data['token'] != $token){
+		$response->withStatus(401);
 		return $response;
 	}
 	
-	return $response;
+	$data = json_decode($request->getBody(), true);
+	$pdf = new Delivery($data['orientation'], $data['unit'], $data['paper']);
+	$pdf->AliasNbPages('{nb}');
+	$pdf->setUserName($data['user']);
+	$pdf->SetFont('Helvetica', '', 9);
+	$pdf->AddPage();
+	$pdf->buildReport($data);
+	
+	try{
+		$pdf->Output($data['title'].'.pdf', 'I');
+	}
+	catch(Exception $e){
+		var_dump($e->getMessage());
+	}
 });
 
-$app->post('/return', function($request, $response) use($token){
-	$data = json_decode($request->getBody(), true);
+$app->post('/retur', function($request, $response) use($token){
+		$data = json_decode($request->getBody(), true);
 	
-	if(!$data['token']){
-		$response->setStatus(401);
+	if(!isset($data['token']) || $data['token'] != $token){
+		$response->withStatus(401);
 		return $response;
 	}
 	
-	return $response;
+	$data = json_decode($request->getBody(), true);
+	$pdf = new Retur($data['orientation'], $data['unit'], $data['paper']);
+	$pdf->AliasNbPages('{nb}');
+	$pdf->setUserName($data['user']);
+	$pdf->SetFont('Helvetica', '', 9);
+	$pdf->AddPage();
+	$pdf->buildReport($data);
+	
+	try{
+		$pdf->Output($data['title'].'.pdf', 'I');
+	}
+	catch(Exception $e){
+		var_dump($e->getMessage());
+	}
 });
 
 $app->post('/sj-balik', function($request, $response) use($token){
