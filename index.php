@@ -18,7 +18,7 @@ require 'reports/commision.php';
 require 'reports/payOff.php';
 require 'reports/sjBelumKembali.php';
 require 'reports/partner.php';
-require 'reports/invoiceAll.php';
+require 'reports/invoice.php';
 
 $app->get('/', function($request, $response){
 	return $response->write('<h1>Welcome to Lois Report Engine</h1>');	
@@ -281,7 +281,7 @@ $app->post('/partner', function($request, $response) use($token){
 	}
 });
 
-$app->post('/invoiceAll', function($request, $response) use($token){
+$app->post('/invoice', function($request, $response) use($token){
 	$data = json_decode($request->getBody(), true);
 	
 	if(!isset($data['token']) || $data['token'] != $token){
@@ -289,7 +289,7 @@ $app->post('/invoiceAll', function($request, $response) use($token){
 		return $response;
 	}
 	
-	$pdf = new InvoiceAll($data['orientation'], $data['unit'], $data['paper']);
+	$pdf = new Invoice($data['orientation'], $data['unit'], $data['paper']);
 	$pdf->AliasNbPages('{nb}');
 	$pdf->setUserName($data['user']);
 	$pdf->SetFont('Helvetica', '', 9);
