@@ -36,11 +36,21 @@
 			$this->addCell(array_sum($w), 10, $data['title'], 'Helvetica', 'U', 14);
 			$this->Ln(6);
 			
-			//Location
-			$this->addCell(array_sum($w), 10, $data['location'], 'Helvetica', 'B', 10);
-			$this->Ln(6);
+			//Payment Method via Report Bank
+			$this->addCell(array_sum($w), 10, $data['paymentMethod'] . ' via Bank: ' . $data['reportBank'], 'Helvetica', 'B', 10);
+			$this->Ln(4);
 			
-			$this->Ln(6);
+				//Location
+			$this->addCell(array_sum($w), 10, $data['location'], 'Helvetica', 'B', 10);
+			$this->Ln(4);
+			
+			//Report date
+			if(isset($data['reportDate'])){
+				$dateStr = Utils::dateIDFormat($data['reportDate'], 1);
+				$this->addCell(array_sum($w), 10, $dateStr, 'Helvetica', 'B', 9);
+			}
+			
+			$this->Ln(8);
 			$this->addCells('Helvetica', 'B', 9, $w, $data['headers']);
 			$this->Ln();
 			
