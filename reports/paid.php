@@ -26,7 +26,7 @@
 		}
 	
 		public function buildReport($data){
-			$w = array(10, 20, 35, 35, 30, 20, 20, 30, 25, 25);
+			$w = array(10, 20, 35, 35, 30, 20, 20, 40, 30, 30);
 			
 			//Header
 			$this->addCell(array_sum($w), 10, 'PT. LIMAS SENTOSA ANTARNUSA', 'Helvetica', 'B', 12);
@@ -40,7 +40,7 @@
 			$this->addCell(array_sum($w), 10, $data['location'], 'Helvetica', 'B', 10);
 			$this->Ln(6);
 			
-			$this->Ln(10);
+			$this->Ln(6);
 			$this->addCells('Helvetica', 'B', 9, $w, $data['headers']);
 			$this->Ln();
 			
