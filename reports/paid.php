@@ -37,7 +37,9 @@
 			$this->Ln(6);
 			
 			//Payment Method via Report Bank
-			$this->addCell(array_sum($w), 10, $data['paymentMethod'] . ' via Bank: ' . $data['reportBank'], 'Helvetica', 'B', 10);
+			$bank = isset($data['reportBank']) ? $data['reportBank'] : '';
+			
+			$this->addCell(array_sum($w), 10, $data['paymentMethod'] . ' via Bank: ' . $bank, 'Helvetica', 'B', 10);
 			$this->Ln(4);
 			
 				//Location
