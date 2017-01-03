@@ -38,13 +38,13 @@
 			$intro = 'Berikut kami sampaikan perincian tagihan pengiriman barang tujuan';
 			$destination = 'Jakarta, Tangerang, sbb:';
 			
-			$this->SetXY(10, 30);
+			$this->SetXY(10, 50);
 			$this->SetFont('Helvetica', 'B', 11);
 			$length = $this->GetStringWidth($invoiceNumber);
 			$this->Cell($length, 2, $invoiceNumber);
 			$this->Ln(6);
 			
-			$this->SetXY(150, 30);
+			$this->SetXY(150, 50);
 			$this->SetFont('Helvetica', null, 11);
 			$length = $this->GetStringWidth($right);
 			$this->Cell($length, 2, $right);
